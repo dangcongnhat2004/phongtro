@@ -1,10 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <title>Danh sách phòng trọ</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-$END$
+<h1>Danh sách phòng trọ</h1>
+
+<!-- Thông báo -->
+<p th:if="${msg}" th:text="${msg}" style="color: green;"></p>
+
+<!-- Nút tạo mới -->
+<a th:href="@{/phongtro/create}">
+    <button type="button">Tạo mới</button>
+</a>
+
+<!-- Form tạo mới -->
+<div id="formTaoMoi" th:if="${formVisible}" style="margin-top: 20px;">
+    <form th:action="@{/phongtro/save}" method="post" th:object="${phongTro}">
+        <div>
+            <label>Tên người thuê trọ:</label>
+            <input type="text" th:field="*{tenNguoiThue}" placeholder="Nhập tên người thuê" />
+            <p th:if="${#fields.hasErrors('tenNguoiThue')}" th:errors="*{tenNguoiThue}" style="color: red;"></p>
+        </div>
+
+        <div>
+            <label>Số điện thoại:</label>
+            <input type="text" th:field="*{soDienThoai}" placeholder="Nhập số điện thoại" />
+            <p th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}" style="color: red;"></p>
+        </div>
+
+        <div>
+            <label for="ngayBatDauThue">Ngày bắt đầu thuê:</label>
+            <input type="date" id="ngayBatDauThue" name="ngayBatDauThue" th:field="*{ngayBatDauThue}" required>
+
+            <p th:if="${#fields.hasErrors('ngayBatDauThue')}" th:errors="*{ngayBatDauThue}" style="color: red;"></p>
+        </div>
+
+        <div>
+            <label>Ghi chú:</label>
+            <textarea th:field="*{ghiChu}" placeholder="Ghi chú..."></textarea>
+        </div>
+
+        <div>
+            <label>Hình thức thanh toán:</label>
+            <select th:field="*{hinhThucThanhToan.id}">
+                <option value="" disabled selected>-- Chọn hình thức thanh toán --</option>
+                <option th:each="httt : ${dsHinhThuc}"
+                        th:value="${httt.id}"
+                        th:text="${httt.tenHinhThuc}">
+                </option>
+            </select>
+
+            <p th:if="${#fields.hasErrors('hinhThucThanhToan')}" th:errors="*{hinhThucThanhToan}" style="color: red;"></p>
+        </div>
+
+        <div style="margin-top: 10px;">
+            <button type="submit">Lưu</button>
+            <button type="button" onclick="hideForm()">Hủy</button>
+        </div>
+    </form>
+</div>
+
+<!-- Danh sách -->
+<table border="1" cellpadding="10" cellspacing="0" style="margin-top: 20px;">
+    <thead>
+    <tr>
+        <th>Mã phòng</th>
+        <th>Tên người thuê</th>
+        <th>Số điện thoại</th>
+        <th>Ngày bắt đầu thuê</th>
+        <th>Hình thức thanh toán</th>
+        <th>Ghi chú</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="phong : ${danhSach}">
+        <td th:text="${phong.maPhong}"></td>
+        <td th:text="${phong.tenNguoiThue}"></td>
+        <td th:text="${phong.soDienThoai}"></td>
+        <td th:text="${phong.ngayBatDauThue}"></td>
+        <td th:text="${phong.hinhThucThanhToan != null ? phong.hinhThucThanhToan.tenHinhThuc : 'N/A'}"></td>
+        <td th:text="${phong.ghiChu}"></td>
+        <td th:text="${phongTro.ghiChu}"></td>
+        <td>
+            <!-- Thêm checkbox để chọn hàng -->
+            <input type="checkbox" th:value="${phongTro.id}" name="selectedIds" />
+        </td>
+    </tr>
+    </tbody>
+</table>
+<!-- Nút xóa -->
+<form action="/deletePhongTro" method="post">
+    <table>
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>Mã phòng</th>
+            <th>Tên người thuê</th>
+            <th>Ghi chú</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="phongTro : ${phongTroList}">
+            <td>
+                <input type="checkbox" name="selectedIds" value="${phongTro.id}" />
+            </td>
+            <td th:text="${phongTro.maPhong}"></td>
+            <td th:text="${phongTro.tenNguoiThue}"></td>
+            <td th:text="${phongTro.ghiChu}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="submit">Xóa đã chọn</button>
+</form>
+<!-- JavaScript toggle -->
+<script>
+    function toggleForm() {
+        const form = document.getElementById('formTaoMoi');
+        form.style.display = 'block';
+    }
+
+    function hideForm() {
+        const form = document.getElementById('formTaoMoi');
+        form.style.display = 'none';
+    }
+</script>
+<script>
+    // Lắng nghe sự thay đổi của checkbox
+    document.querySelectorAll("input[type='checkbox']").forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            var deleteButton = document.getElementById("deleteButton");
+            var selectedCheckboxes = document.querySelectorAll("input[type='checkbox']:checked").length;
+            deleteButton.disabled = selectedCheckboxes === 0;  // Nếu không có checkbox nào được chọn thì disable nút xóa
+        });
+    });
+</script>
+
 </body>
 </html>
